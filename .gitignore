@@ -1,0 +1,17 @@
+*
+!/**/
+!*.*
+
+.idea/
+
+go.sum
+
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+*.test
+
+*.out
