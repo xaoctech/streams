@@ -2,6 +2,14 @@ package streams
 
 import "fmt"
 
+const (
+	DefaultFirstLen      = 5
+	DefaultLastLen       = 5
+	DefaultMaxSkip       = 1000
+	DefaultSkippedFormat = "..."
+	DefaultSeparator     = ", "
+)
+
 type formatter[T any] struct {
 	stream Stream[T]
 	cfg    formatterConfig
@@ -145,7 +153,10 @@ func Suffix(s string) func(cfg *formatterConfig) {
 }
 
 func Format[T any](s Stream[T], params ...func(*formatterConfig)) fmt.Formatter {
-	config := formatterConfig{firstLen: 10, lastLen: 10, maxSkip: 1000000, separator: ", ", skippedFormat: "..."}
+	config := formatterConfig{
+		firstLen: DefaultFirstLen, lastLen: DefaultLastLen, maxSkip: DefaultMaxSkip, separator: DefaultSeparator,
+		skippedFormat: DefaultSkippedFormat,
+	}
 	for _, param := range params {
 		param(&config)
 	}
