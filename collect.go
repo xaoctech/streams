@@ -29,13 +29,14 @@ func (s Stream[T]) CollectFirst(count int) (first []T, rest Stream[T]) {
 	return CollectFirst(s, count)
 }
 
-func CollectLast[T any](stream Stream[T], count, maxSkip int) (skipped int, last []T) {
+func CollectLast[T any](stream Stream[T], count, maxSkip int) (skipped int, last []T, hasRest bool) {
 	processed := 0
 	if count < 0 {
 		panic("CollectLast: count < 0")
 	}
 	if count == 0 {
-		return 0, nil
+		var v T
+		return 0, nil, stream.Next(&v)
 	}
 	var buffer []T
 	lastIdx := 0
@@ -49,14 +50,16 @@ func CollectLast[T any](stream Stream[T], count, maxSkip int) (skipped int, last
 			lastIdx = (lastIdx + 1) % count
 		}
 	}
-	return processed - len(buffer), append(buffer[lastIdx:], buffer[:lastIdx]...)
+	return processed - len(buffer), append(buffer[lastIdx:], buffer[:lastIdx]...), stream.Next(&v)
 }
 
-func (s Stream[T]) CollectLast(count, maxSkip int) (skip int, last []T) {
+func (s Stream[T]) CollectLast(count, maxSkip int) (skip int, last []T, hasRest bool) {
 	return CollectLast(s, count, maxSkip)
 }
 
-func CollectFirstLast[T any](stream Stream[T], firstCount, lastCount, maxSkip int) (first []T, skipped int, last []T) {
+func CollectFirstLast[T any](stream Stream[T], firstCount, lastCount, maxSkip int) (
+	first []T, skipped int, last []T, hasRest bool,
+) {
 	if firstCount < 0 {
 		panic("CollectFirstLast: firstCount < 0")
 	}
@@ -69,25 +72,34 @@ func CollectFirstLast[T any](stream Stream[T], firstCount, lastCount, maxSkip in
 		if len(first) < lastCount {
 			lastCount = len(first)
 		}
+		if lastCount == 0 {
+			var v T
+			return nil, 0, nil, stream.Next(&v)
+		}
 		last = make([]T, lastCount)
 		copy(last, first[len(first)-lastCount:])
-		return first, -lastCount, last
+		return first, -lastCount, last, false
 	}
-	skipped, last = CollectLast(stream, lastCount, maxSkip)
+	skipped, last, hasRest = CollectLast(stream, lastCount, maxSkip)
 	if len(last) < lastCount {
 		if len(last)+len(first) < lastCount {
 			lastCount = len(last) + len(first)
+		}
+		if lastCount == 0 {
+			return nil, skipped, nil, hasRest
 		}
 		copyFirst := lastCount - len(last)
 		mergedLast := make([]T, lastCount)
 
 		copy(mergedLast, first[len(first)-copyFirst:])
 		copy(mergedLast[copyFirst:], last)
-		return first, -copyFirst, mergedLast
+		return first, -copyFirst, mergedLast, hasRest
 	}
-	return first, skipped, last
+	return first, skipped, last, hasRest
 }
 
-func (s Stream[T]) CollectFirstLast(firstCount, lastCount, maxCount int) (first []T, skipped int, last []T) {
-	return CollectFirstLast(s, firstCount, lastCount, maxCount)
+func (s Stream[T]) CollectFirstLast(firstCount, lastCount, maxSkip int) (
+	first []T, skipped int, last []T, hasRest bool,
+) {
+	return CollectFirstLast(s, firstCount, lastCount, maxSkip)
 }
