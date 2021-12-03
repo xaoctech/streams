@@ -1,22 +1,24 @@
 package streams
 
-func Range[N Number](from, to N) Stream[N] {
+import "github.com/xaoctech/streams/constraints"
+
+func Range[N constraints.Number](from, to N) Stream[N] {
 	return Stream[N]{&rangeStreamer[N]{from, to, N(1)}}
 }
 
-func RangeBy[N Number](from, to, step N) Stream[N] {
+func RangeBy[N constraints.Number](from, to, step N) Stream[N] {
 	return Stream[N]{&rangeStreamer[N]{from, to, step}}
 }
 
-func RangeFrom[N Number](from N) Stream[N] {
+func RangeFrom[N constraints.Number](from N) Stream[N] {
 	return Stream[N]{&rangeFromStreamer[N]{from, N(1)}}
 }
 
-func RangeFromBy[N Number](from, step N) Stream[N] {
+func RangeFromBy[N constraints.Number](from, step N) Stream[N] {
 	return Stream[N]{&rangeFromStreamer[N]{from, step}}
 }
 
-type rangeStreamer[N Number] struct {
+type rangeStreamer[N constraints.Number] struct {
 	value, to, step N
 }
 
@@ -29,7 +31,7 @@ func (r *rangeStreamer[N]) Next(v *N) bool {
 	return false
 }
 
-type rangeFromStreamer[N Number] struct {
+type rangeFromStreamer[N constraints.Number] struct {
 	value, step N
 }
 

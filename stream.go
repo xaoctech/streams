@@ -90,3 +90,11 @@ func Assert[T any](stream Stream[T]) Stream[T] {
 func (s Stream[T]) Assert() Stream[T] {
 	return Assert(s)
 }
+
+func Fold[T any, B any](s Stream[T], accum B, f func(B, T) B) B {
+	var v T
+	for s.Next(&v) {
+		accum = f(accum, v)
+	}
+	return accum
+}
